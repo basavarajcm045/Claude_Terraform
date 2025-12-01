@@ -1,5 +1,3 @@
-# S3 Module Usage Examples - Copy these into your Terraform code
-
 #========== EXAMPLE 1: Development Bucket - Minimal Security ==========
 
 module "s3_dev" {
