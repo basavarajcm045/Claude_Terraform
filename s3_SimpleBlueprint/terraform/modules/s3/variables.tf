@@ -13,6 +13,12 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "force_destroy" {
+  description = "A boolean that indicates all objects should be deleted from the bucket so that the buxket can be destroyed without error"
+  type        = bool
+  default     = false
+}
+
 #variable "account_id" {
   #description = "AWS Account ID"
   #type        = string
@@ -21,7 +27,7 @@ variable "bucket_name" {
 variable "enable_versioning" {
   description = "Enable versioning for the S3 bucket"
   type        = bool
-  default     = true
+  #default     = true
   
 }
 
@@ -73,6 +79,26 @@ variable "acl" {
   
 }
 
+variable "lifecycle_rules" {
+  description = "Lifecycle rules for the S3 bucket"
+  type = list(object({
+    #id      = "log.retention"
+    id      = string
+    enabled = bool  #true
+    prefix  = string   #"logs/"
+    transitions = list(object({
+      days          = number
+      storage_class = string
+    }))
+    
+    expiration = object({
+      days = number
+    })
+  }))
+  default = []
+
+}
+
 variable "enforce_encrypted_uploads" {
   description = "Enforce encrypted uploads to the S3 bucket"
   type        = bool
@@ -91,23 +117,6 @@ variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
   default     = {}
-}
-
-variable "lifecycle_rules" {
-  description = "Lifecycle rules for the S3 bucket"
-  type = list(object({
-    id      = string
-    enabled = bool
-    prefix  = string
-    transitions = list(object({
-      days          = number
-      storage_class = string
-    }))
-    expiration = object({
-      days = number
-    })
-  }))
-  default = []
 }
 
 #========Encryption Variables ========
@@ -143,3 +152,8 @@ variable "kms_custom_policy" {
 }
 
 #===============
+
+#variable "custom_policy_statements" {
+  #description = ""
+  
+#}

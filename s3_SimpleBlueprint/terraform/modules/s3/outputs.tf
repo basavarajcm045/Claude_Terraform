@@ -47,3 +47,10 @@ output "bucket_domain_name" {
   #value       = aws_s3_bucket_policy.main.id
 #}
 
+#========== ENCRYPTION ==========
+
+output "encryption_type" {
+  description = "Bucket encryption type"
+  value       = var.encryption_type
+}
+
