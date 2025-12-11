@@ -33,7 +33,6 @@ resource "aws_s3_bucket" "main" {
     local.default_tags,
     {
       #Name = var.bucket_name != "" ? var.bucket_name : "${local.bucket_prefix}-bucket"
-      #Name = var.bucket_name
       Name = "${local.bucket_prefix}-${var.bucket_name}"
 
     }
@@ -49,6 +48,25 @@ resource "aws_s3_bucket_versioning" "main" {
     status = var.versioning_enabled ? "Enabled" : "Suspended"
     mfa_delete = var.enable_versioning && var.enable_mfa_delete ? "Enabled" : "Disabled"
   }
+}
+
+#========== OBJECT LOCK ==========
+
+# Note: Must be enabled at bucket creation. This is a workaround
+resource "aws_s3_bucket_object_lock_configuration" "main" {
+  count = var.enable_object_lock ? 1 : 0
+  #count  = var.enable_object_lock && var.object_lock_default != null ? 1 : 0
+  bucket = aws_s3_bucket.main.id
+
+  rule {
+    default_retention {
+      mode = var.object_lock_default_mode
+      days = try(var.object_lock_default_days, null)
+      #years = try(var.object_lock_default_years, null)
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.main]
 }
 
 #========== ENCRYPTION ==========
@@ -177,21 +195,6 @@ resource "aws_s3_bucket_policy" "main" {
         }
       ] : [],
 
-      # Allow specific principals if provided
-      var.allow_principals != {} ? [
-        for principal, permissions in var.allow_principals : {
-          Sid       = "AllowPrincipal${replace(principal, "/[^A-Za-z0-9]/", "")}"
-          Effect    = "Allow"
-          Principal = contains(keys(permissions), "arn") ? { AWS = permissions.arn } : { Service = permissions.service }
-          Action    = permissions.actions
-          Resource = contains(keys(permissions), "include_bucket_resource") && permissions.include_bucket_resource ? [
-            aws_s3_bucket.main.arn,
-            "${aws_s3_bucket.main.arn}/*"
-          ] : ["${aws_s3_bucket.main.arn}/*"]
-          Condition = contains(keys(permissions), "condition") ? permissions.condition : null
-        }
-      ] : [],
-      
       # Custom policy statements
       #var.custom_policy_statements
     )

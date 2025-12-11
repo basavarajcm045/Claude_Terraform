@@ -13,6 +13,11 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "bucket_name_logging" {
+  description = "S3 bucket name for store logs(if empty, a unique name will be generated)"
+  type        = string
+}
+
 variable "enable_versioning" {
   description = "Enable versioning for the S3 bucket"
   type        = bool

@@ -27,65 +27,79 @@ variable "force_destroy" {
 variable "enable_versioning" {
   description = "Enable versioning for the S3 bucket"
   type        = bool
-  #default     = true
   
 }
 
 variable "versioning_enabled" {
   description = "Enable versioning for the S3 bucket"
   type        = bool
-  default     = true
 }
 
 variable "enable_mfa_delete" {
   description = "Enable MFA delete for the S3 bucket (requires versioning to be enabled)"
   type        = bool
-  default     = false
   
 }
+
+#=======Object Lock==============
+variable "enable_object_lock" {
+  description = "Enable S3 Object Lock at bucket creation (force new if changed to true)"
+  type        = bool
+}
+
+variable "object_lock_default_mode" {
+  description = "Default object lock mode: GOVERNANCE or COMPLIANCE"
+  type        = string
+}
+
+variable "object_lock_default_days" {
+  description = "Default retention period (days) for object lock"
+  type        = number
+}
+
+#variable "object_lock_default_years" {
+  #description = "Default retention period (Year/s) for object lock"
+  #type        = number
+  #default     = 1
+#}
 
 variable "block_public_acls" {
   description = "Block public ACLs for the S3 bucket"
   type        = bool
-  default     = true
   
 }
 
 variable "block_public_policy" {
   description = "Block public bucket policies for the S3 bucket"
   type        = bool
-  default     = true
   
 }
 
 variable "ignore_public_acls" {
   description = "Ignore public ACLs for the S3 bucket"
   type        = bool
-  default     = true
   
 }
 
 variable "restrict_public_buckets" {
   description = "Restrict public buckets for the S3 bucket"
   type        = bool
-  default     = true
   
 }
 
-variable "acl" {
-  description = "Canned ACL to apply to the S3 bucket"
-  type        = string
-  default     = "private"
+#variable "acl" {
+  #description = "Canned ACL to apply to the S3 bucket"
+  #type        = string
+  #default     = "private"
   
-}
+#}
 
 variable "lifecycle_rules" {
   description = "Lifecycle rules for the S3 bucket"
   type = list(object({
-    #id      = "log.retention"
     id      = string
-    enabled = bool  #true
-    prefix  = string   #"logs/"
+    enabled = bool  
+    prefix  = string 
     transitions = list(object({
       days          = number
       storage_class = string
@@ -102,14 +116,12 @@ variable "lifecycle_rules" {
 variable "enforce_encrypted_uploads" {
   description = "Enforce encrypted uploads to the S3 bucket"
   type        = bool
-  default     = true
   
 }
 
 variable "enforce_ssl" {
   description = "Enforce SSL for requests to the S3 bucket"
-  type        = bool
-  default     = true  
+  type        = bool 
   
 }
 
@@ -124,13 +136,11 @@ variable "tags" {
 variable "encryption_type" {
   description = "Type of encryption for the S3 bucket (none, sse-s3, kms)"
   type        = string
-  default     = "sse-s3"
 }
 
 variable "kms_key_id" {
   description = "KMS Key ID for KMS encryption (if null, AES256 will be used)"
   type        = string
-  default     = ""
 }
 
 variable "bucket_key_enabled" {
