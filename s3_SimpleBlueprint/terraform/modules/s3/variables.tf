@@ -96,18 +96,69 @@ variable "restrict_public_buckets" {
 
 variable "lifecycle_rules" {
   description = "Lifecycle rules for the S3 bucket"
+
+  type = list(object({
+    id      = string
+    enabled = bool
+
+    # ------ FILTERS ------
+    filters = optional(object({
+      prefix = optional(string)
+      tags   = optional(map(string))
+    }))
+
+    # ------ TRANSITIONS ------
+    transitions = optional(list(object({
+      days          = optional(number)
+      date          = optional(string)
+      storage_class = string
+    })))
+
+    noncurrent_version_transitions = optional(list(object({
+      noncurrent_days = number
+      storage_class   = string
+    })))
+
+    # ------ EXPIRATION ------
+    expiration = optional(object({
+      days                         = optional(number)
+      date                         = optional(string)
+      expired_object_delete_marker = optional(bool)
+    }))
+
+    noncurrent_version_expiration = optional(object({
+      noncurrent_days = number
+    }))
+
+    # ------ ABORT ------
+    abort_incomplete_multipart_upload = optional(object({
+      days_after_initiation = number
+    }))
+  }))
+
+  default = []
+}
+
+variable "lifecycle_rules_old" {
+  description = "Lifecycle rules for the S3 bucket"
   type = list(object({
     id      = string
     enabled = bool  
     prefix  = string 
-    transitions = list(object({
+
+    transitions = optional(list(object({
       days          = number
       storage_class = string
+    })))
+    
+    expiration = optional(object({
+      days = number
+    }))
+
+    abort_incomplete_multipart_upload = optional(object({
+      days_after_initiation = number
     }))
     
-    expiration = object({
-      days = number
-    })
   }))
   default = []
 
@@ -146,19 +197,18 @@ variable "kms_key_id" {
 variable "bucket_key_enabled" {
   description = "Enable S3 Bucket Key for KMS encryption"
   type        = bool
-  default     = false
+  
 }
 
 variable "kms_deletion_window" {
   description = "KMS Key deletion window in days"
   type        = number
-  default     = 30
+  #default     = 30
 }   
 
 variable "kms_custom_policy" {
   description = "Custom KMS Key policy"
   type        = string
-  default     = ""
 }
 
 #===============

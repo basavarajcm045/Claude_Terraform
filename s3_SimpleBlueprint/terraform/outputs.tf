@@ -26,22 +26,49 @@ output "bucket_domain_name" {
   value       = module.s3_dev.bucket_domain_name
 }
 
-#output "bucket_versioning" {
-#description = "The bucket versioning status"
-#value       = module.s3_dev.bucket_versioning
-#}
+/*output "bucket_versioning" {
+  description = "The bucket versioning status"
+  value       = aws_s3_bucket_versioning.main.status
+}*/
 
-#output "bucket_website_endpoint" {
-#description = "The bucket website endpoint"
-#value       = module.s3_dev.bucket_website_endpoint
-#}
+/*output "bucket_website_endpoint" {
+  description = "The bucket website endpoint"
+  value       = aws_s3_bucket.main.bucket_website_endpoint
+}*/
 
-#output "bucket_website_domain" {
-#description = "The bucket website domain"
-#value       = module.s3_dev.bucket_website_domain
-#}
+/*output "bucket_website_domain" {
+  description = "The bucket website domain"
+  value       = aws_s3_bucket.main.website_domain
+} */
 
-#output "bucket_policy_id" {
-#description = "The bucket policy ID"
-#value       = module.s3_dev.bucket_policy_id
-#}
+/*output "bucket_policy_id" {
+  description = "The bucket policy ID"
+  value       = aws_s3_bucket_policy.main.id
+}*/
+
+#========== VERSIONING & LOCK ==========
+
+output "versioning_enabled" {
+  description = "Whether versioning is enabled"
+  value       = module.s3_dev.versioning_enabled
+}
+
+output "mfa_delete_enabled" {
+  description = "Whether MFA delete is enabled"
+  value       = module.s3_dev.mfa_delete_enabled
+}
+
+output "object_lock_enabled" {
+  description = "Whether object lock is enabled"
+  value       = module.s3_dev.object_lock_enabled
+}
+
+#========== ENCRYPTION ==========
+
+output "encryption_type" {
+  description = "Bucket encryption type"
+  value       = module.s3_dev.encryption_type
+}
+
+#output "kms_key_id" {
+#output "kms_key_arn" {

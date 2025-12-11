@@ -84,7 +84,29 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
     bucket_key_enabled = var.bucket_key_enabled
   }
 }
-      
+
+# KMS Key for S3 (if not provided externally)
+resource "aws_kms_key" "s3" {
+  count                   = var.encryption_type == "kms" && var.kms_key_id == "" ? 1 : 0
+  description             = "KMS key for ${aws_s3_bucket.main.id} encryption"
+  deletion_window_in_days = var.kms_deletion_window
+  enable_key_rotation     = true
+  policy                  = var.kms_custom_policy != "" ? var.kms_custom_policy : null
+
+  tags = merge(
+    local.default_tags,
+    {
+      Name = "${local.bucket_prefix}-kms-key"
+    }
+  )
+}
+
+resource "aws_kms_alias" "s3" {
+  count         = var.encryption_type == "kms" && var.kms_key_id == "" ? 1 : 0
+  name          = "alias/${local.bucket_prefix}-s3-key"
+  target_key_id = aws_kms_key.s3[0].key_id
+}
+
 #========== PUBLIC ACCESS BLOCK ==========
 
 resource "aws_s3_bucket_public_access_block" "main" {
@@ -112,27 +134,29 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
       status = rule.value.enabled ? "Enabled" : "Disabled"
 
       # Filtering
-      #dynamic "filter" {
-        #for_each = rule.value.filters != null ? [rule.value.filters] : []
-        #content {
-          #and {
-            #prefix = try(filter.value.prefix, "")
+      dynamic "filter" {
+        for_each = rule.value.filters != null ? [rule.value.filters] : []
+        content {
+          and {
+            prefix = try(filter.value.prefix, "")
             #tags   = try(filter.value.tags, {})
-          #}
-        #}
-      #}
-
-      filter {
-        prefix = rule.value.prefix
+          }
+        }
       }
+      #filter {
+        #prefix = rule.value.prefix
+      #}
 
       # Transitions
       dynamic "transition" {
-        for_each = try(rule.value.transitions, [])
+        #for_each = rule.value.transitions != null ? rule.value.transitions : []
+        for_each = try(rule.value.transition, [])
+        #for_each = try(rule.value.transitions, null) != null ? [rule.value.transitions] : []
         content {
           days          = try(transition.value.days, null)
           #date          = try(transition.value.date, null)
           storage_class = transition.value.storage_class
+          #storage_class = try(transition.value.storage_class, null)
         }
       }
 
@@ -146,9 +170,17 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
         }
       }
       
+      # Abort incomplete multipart upload
+      dynamic "abort_incomplete_multipart_upload" {
+        for_each = try(rule.value.abort_incomplete_multipart_upload, null) != null ? [rule.value.abort_incomplete_multipart_upload] : []
+        content {
+          days_after_initiation = abort_incomplete_multipart_upload.value.days_after_initiation
+        }
+      }
+
     }
   }
-
+    
   depends_on = [aws_s3_bucket_versioning.main]
 }
 
